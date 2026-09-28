@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS stockalert;
+USE stockalert;
+SHOW TABLES;

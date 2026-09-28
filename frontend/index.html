@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>StockAlert | Inventory Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#dashboard" aria-label="StockAlert dashboard">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><path d="M5 21.5 12 14l5 4.5L27 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 8h7v7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>Stock<span class="brand-light">Alert</span></span>
+      </a>
+
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="nav-links">
+        <a class="nav-link is-active" href="#dashboard" data-section="dashboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-link" href="#products" data-section="products">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8.5 4.5v9L12 21l-8.5-4.5v-9L12 3Z"/><path d="m3.8 7.7 8.2 4.5 8.2-4.5M12 12.2V21"/></svg>
+          <span>Products</span>
+          <span class="nav-count" id="productNavCount">0</span>
+        </a>
+        <a class="nav-link" href="#movements" data-section="movements">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-3-3M17 17H4l3 3"/><path d="M20 7a8 8 0 0 1-2.2 5.5M4 17a8 8 0 0 1 2.2-5.5"/></svg>
+          <span>Stock Movements</span>
+        </a>
+        <a class="nav-link" href="#alerts" data-section="alerts">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          <span>Reorder Alerts</span>
+          <span class="nav-count nav-count--alert" id="alertNavCount">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="connection-indicator"><span class="connection-dot" id="connectionDot"></span><span id="connectionLabel">Connecting to backend</span></div>
+        <div class="sidebar-version">INVENTORY CONTROL <span>•</span> 1.0</div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="dashboard">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span class="breadcrumb-divider">/</span><strong>Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="today-label" id="todayLabel"></span>
+          <button class="icon-button refresh-button" id="refreshButton" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/></svg>
+          </button>
+          <div class="avatar" aria-label="StockAlert workspace">SA</div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="page-heading" aria-labelledby="pageTitle">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> INVENTORY OVERVIEW</div>
+            <h1 id="pageTitle">Inventory Dashboard</h1>
+            <p>A clear view of your stock position and reorder activity.</p>
+          </div>
+          <button class="button button-primary" id="addProductButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add Product</span>
+          </button>
+        </section>
+
+        <div class="backend-banner" id="backendBanner" role="alert" hidden>
+          <span class="banner-icon" aria-hidden="true">!</span>
+          <span>Unable to connect to StockAlert backend. Make sure Spring Boot is running on port 8080.</span>
+          <button class="banner-retry" id="bannerRetryButton" type="button">Retry</button>
+        </div>
+
+        <section class="stats-grid" aria-label="Inventory summary">
+          <article class="stat-card stat-card--blue">
+            <div class="stat-topline"><span class="stat-label">TOTAL PRODUCTS</span><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8.5 4.5v9L12 21l-8.5-4.5v-9L12 3Z"/><path d="m3.8 7.7 8.2 4.5 8.2-4.5M12 12.2V21"/></svg></span></div>
+            <div class="stat-value" id="totalProducts">--</div>
+            <div class="stat-foot">Products in catalog</div>
+          </article>
+          <article class="stat-card stat-card--amber">
+            <div class="stat-topline"><span class="stat-label">LOW STOCK</span><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4M12 16.5h.01"/></svg></span></div>
+            <div class="stat-value" id="lowStockProducts">--</div>
+            <div class="stat-foot">At or below reorder threshold</div>
+          </article>
+          <article class="stat-card stat-card--red">
+            <div class="stat-topline"><span class="stat-label">OPEN ALERTS</span><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span></div>
+            <div class="stat-value" id="openAlerts">--</div>
+            <div class="stat-foot">Require your attention</div>
+          </article>
+          <article class="stat-card stat-card--green">
+            <div class="stat-topline"><span class="stat-label">TOTAL STOCK UNITS</span><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M16 6h4v4"/></svg></span></div>
+            <div class="stat-value" id="totalStockUnits">--</div>
+            <div class="stat-foot">Units across all products</div>
+          </article>
+        </section>
+
+        <section class="section-block" id="products" aria-labelledby="productsTitle">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker">CATALOG</div>
+              <h2 id="productsTitle">Products <span class="heading-count" id="productCount">0</span></h2>
+            </div>
+            <div class="table-tools">
+              <label class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+                <input type="search" id="productSearch" placeholder="Search products" aria-label="Search products">
+              </label>
+              <label class="select-wrap filter-wrap">
+                <span class="sr-only">Filter products</span>
+                <select id="productFilter"><option value="all">All products</option><option value="low">Low stock</option><option value="in-stock">In stock</option></select>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+              </label>
+            </div>
+          </div>
+          <div class="table-frame">
+            <table class="data-table">
+              <thead><tr><th>PRODUCT</th><th>SKU</th><th>CURRENT STOCK</th><th>REORDER THRESHOLD</th><th>REORDER QTY</th><th>STATUS</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="productsTableBody"><tr><td class="table-state" colspan="7"><span class="loading-mark"></span>Loading products</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-footer"><span id="productTableSummary">Loading catalog...</span><span class="table-footer-note"><span class="footer-dot"></span> Live inventory</span></div>
+        </section>
+
+        <section class="section-block movement-section" id="movements" aria-labelledby="movementsTitle">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker">INVENTORY CONTROL</div>
+              <h2 id="movementsTitle">Stock Movements</h2>
+              <p class="section-description">Record incoming stock, sales, returns, and adjustments.</p>
+            </div>
+            <div class="movement-quick-action">
+              <label class="select-wrap movement-product-wrap">
+                <span class="sr-only">Choose a product</span>
+                <select id="movementProductSelect" aria-label="Choose a product"><option value="">Select product</option></select>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+              </label>
+              <button class="button button-secondary" id="quickMovementButton" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Record movement</span>
+              </button>
+            </div>
+          </div>
+          <div class="movement-note"><span class="movement-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg></span><span>Every stock change is recorded against a product and reason.</span></div>
+        </section>
+
+        <section class="section-block alerts-section" id="alerts" aria-labelledby="alertsTitle">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker section-kicker--warning">NEEDS ATTENTION</div>
+              <h2 id="alertsTitle">Reorder Alerts <span class="heading-count heading-count--warning" id="alertCount">0</span></h2>
+            </div>
+            <span class="open-status"><span></span> Open alerts</span>
+          </div>
+          <div class="table-frame">
+            <table class="data-table alert-table">
+              <thead><tr><th>PRODUCT</th><th>CURRENT STOCK</th><th>REORDER QUANTITY</th><th>STATUS</th><th>CREATED</th><th><span class="sr-only">Action</span></th></tr></thead>
+              <tbody id="alertsTableBody"><tr><td class="table-state" colspan="6"><span class="loading-mark"></span>Loading alerts</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-footer"><span id="alertTableSummary">Checking reorder queue...</span><span class="table-footer-note">Updated with dashboard refresh</span></div>
+        </section>
+
+        <footer class="page-footer"><span>StockAlert Inventory</span><span>Inventory status reflects the latest backend data.</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="productModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle" aria-describedby="productModalDescription">
+      <div class="modal-header"><div><div class="modal-kicker">CATALOG</div><h2 id="productModalTitle">Add product</h2><p id="productModalDescription">Create a product and set its replenishment levels.</p></div><button class="icon-button modal-close" type="button" data-close-modal aria-label="Close dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <form id="productForm">
+        <label class="form-field"><span>Product name</span><input name="name" type="text" autocomplete="off" maxlength="120" placeholder="e.g. Wireless Mouse" required></label>
+        <label class="form-field"><span>SKU</span><input name="sku" type="text" autocomplete="off" maxlength="80" placeholder="e.g. MOUSE-001" required></label>
+        <div class="form-row">
+          <label class="form-field"><span>Reorder threshold</span><input name="reorderThreshold" type="number" min="0" step="1" value="10" required></label>
+          <label class="form-field"><span>Reorder quantity</span><input name="reorderQuantity" type="number" min="0" step="1" value="50" required></label>
+        </div>
+        <div class="modal-error" id="productFormError" role="alert" hidden></div>
+        <div class="modal-actions"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" type="submit"><span class="button-label">Create product</span><span class="button-spinner" aria-hidden="true"></span></button></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="movementModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="movementModalTitle" aria-describedby="movementModalDescription">
+      <div class="modal-header"><div><div class="modal-kicker">STOCK CONTROL</div><h2 id="movementModalTitle">Record movement</h2><p id="movementModalDescription">Update the current inventory for <strong id="movementProductName">this product</strong>.</p></div><button class="icon-button modal-close" type="button" data-close-modal aria-label="Close dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <form id="movementForm">
+        <input name="productId" type="hidden">
+        <div class="form-field"><span>Movement type</span><div class="segmented-control"><label><input type="radio" name="movementType" value="IN" checked><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Stock in</span></label><label><input type="radio" name="movementType" value="OUT"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m7-7-7 7-7-7"/></svg>Stock out</span></label></div></div>
+        <label class="form-field"><span>Reason</span><span class="select-wrap full-select"><select name="reason" required><option value="PURCHASE">Purchase</option><option value="SALE">Sale</option><option value="RETURN">Return</option><option value="DAMAGE">Damage</option><option value="ADJUSTMENT">Adjustment</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></span></label>
+        <label class="form-field"><span>Quantity</span><input name="quantity" type="number" min="1" step="1" placeholder="Enter units" required></label>
+        <div class="modal-error" id="movementFormError" role="alert" hidden></div>
+        <div class="modal-actions"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" type="submit"><span class="button-label">Save movement</span><span class="button-spinner" aria-hidden="true"></span></button></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>

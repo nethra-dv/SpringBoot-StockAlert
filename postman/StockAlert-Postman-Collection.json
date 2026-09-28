@@ -1,0 +1,382 @@
+{
+  "info": {
+    "_postman_id": "stockalert-retail-inventory-001",
+    "name": "StockAlert - Retail Inventory API",
+    "description": "Complete Postman testing flow for the StockAlert Spring Boot project.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "productId",
+      "value": "1"
+    },
+    {
+      "key": "alertId",
+      "value": "1"
+    },
+    {
+      "key": "keyboardProductId",
+      "value": "2"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Products",
+      "item": [
+        {
+          "name": "Create Product - Logitech Mouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Logitech Mouse\",\n  \"sku\": \"MOUSE-001\",\n  \"reorderThreshold\": 10,\n  \"reorderQuantity\": 50\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json(); if (j.id) pm.collectionVariables.set('productId', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products"
+            }
+          }
+        },
+        {
+          "name": "Get Product By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}"
+            }
+          }
+        },
+        {
+          "name": "Get Current Stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/stock"
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Logitech Mouse Updated\",\n  \"sku\": \"MOUSE-001\",\n  \"reorderThreshold\": 10,\n  \"reorderQuantity\": 50\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Stock Movements",
+      "item": [
+        {
+          "name": "Purchase +100",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"IN\",\n  \"reason\": \"PURCHASE\",\n  \"quantity\": 100\n}"
+            }
+          }
+        },
+        {
+          "name": "Check Stock - Expect 100",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements/current-stock"
+            }
+          }
+        },
+        {
+          "name": "Sale -95 (Triggers Reorder Alert)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"OUT\",\n  \"reason\": \"SALE\",\n  \"quantity\": 95\n}"
+            }
+          }
+        },
+        {
+          "name": "List Product Movements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            }
+          }
+        },
+        {
+          "name": "Invalid - Sell More Than Available",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"OUT\",\n  \"reason\": \"SALE\",\n  \"quantity\": 1000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid - Wrong Reason/Movement Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"IN\",\n  \"reason\": \"SALE\",\n  \"quantity\": 5\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Reorder Alerts",
+      "item": [
+        {
+          "name": "Get Open Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reorder-alerts/open"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"pm.test('Status is 200 OK', () => pm.response.to.have.status(200));\",\n  \"const a = pm.response.json(); if (a.length && a[0].id) pm.collectionVariables.set('alertId', a[0].id);\"\n]"
+            }
+          }
+        },
+        {
+          "name": "Get All Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reorder-alerts"
+            }
+          }
+        },
+        {
+          "name": "Purchase +50 - Fulfills Open Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"IN\",\n  \"reason\": \"PURCHASE\",\n  \"quantity\": 50\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Alerts - Verify FULFILLED",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reorder-alerts"
+            }
+          }
+        },
+        {
+          "name": "Manual Fulfill Alert",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reorder-alerts/{{alertId}}/fulfill"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Fast Moving Products",
+      "item": [
+        {
+          "name": "Create Keyboard Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mechanical Keyboard\",\n  \"sku\": \"KEYBOARD-001\",\n  \"reorderThreshold\": 20,\n  \"reorderQuantity\": 100\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json(); if (j.id) pm.collectionVariables.set('keyboardProductId', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Keyboard Purchase +200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{keyboardProductId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"IN\",\n  \"reason\": \"PURCHASE\",\n  \"quantity\": 200\n}"
+            }
+          }
+        },
+        {
+          "name": "Keyboard Sale -50",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{keyboardProductId}}/movements"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movementType\": \"OUT\",\n  \"reason\": \"SALE\",\n  \"quantity\": 50\n}"
+            }
+          }
+        },
+        {
+          "name": "Fast Moving - September 2026",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/fast-moving?from=2026-09-01&to=2026-09-30"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
